@@ -39,12 +39,22 @@ module SplunkMan
       puts "waiting for result for search id #{search_id}"
 
       done = ''
-      while done.empty? do
+      time_to_sleep = 5
+      time_to_wait = 3 * 60 
+      time_waited = 0
+      
+      while done.empty? && time_waited < time_to_wait do
         filter_command = "grep -e isDone..1"
-        puts "curl -k -s -u #{@user}:#{@password} #{@splunk_server}/search/jobs/#{search_id} | #{filter_command}"
         done=`curl -k -s -u #{@user}:#{@password} #{@splunk_server}/search/jobs/#{search_id} | #{filter_command}` 
-        print "."
+        sleep time_to_sleep
+        time_waited += time_to_sleep
       end
+      
+      if done.empty? 
+        puts "timed out waiting for results from splunk"
+      else
+        puts "got results"
+      end 
     end
 
     def get_splunk_search_result(search_id)
